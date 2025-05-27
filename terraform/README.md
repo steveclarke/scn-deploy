@@ -1,6 +1,7 @@
 # Terraform Configuration for SCN Docker Host
 
-This Terraform configuration automates the deployment of a Digital Ocean droplet for the Saltbox Church Network Docker stack.
+This Terraform configuration automates the deployment of a Digital Ocean droplet
+for the Saltbox Church Network Docker stack.
 
 ## Features
 

@@ -29,7 +29,7 @@ output "next_steps" {
     Server deployed successfully!
     
     1. SSH into the server:
-       ${self.ssh_command.value}
+       ssh deploy@${digitalocean_droplet.scn_docker_host.ipv4_address}
     
     2. Check setup notes:
        cat /home/deploy/SETUP_NOTES.txt

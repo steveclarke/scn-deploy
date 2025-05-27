@@ -16,10 +16,10 @@ region       = "nyc3"  # Choose a region close to your users
 # - s-2vcpu-2gb   ($18/month)
 # - s-2vcpu-4gb   ($24/month) - Recommended
 # - s-4vcpu-8gb   ($48/month)
-droplet_size = "s-2vcpu-4gb"
+droplet_size = "s-1vcpu-1gb-amd"
 
 # Ubuntu 22.04 LTS
-droplet_image = "ubuntu-22-04-x64"
+droplet_image = "ubuntu-24-04-x64"
 
 # Enable automated backups ($1/month per 20GB)
 enable_backups = true
