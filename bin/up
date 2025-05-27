@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e
+
+# Change to the project root directory
+cd "$(dirname "$0")/.."
+
+docker compose -f compose.yml up -d "${@:2}"

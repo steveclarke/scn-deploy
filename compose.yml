@@ -1,0 +1,118 @@
+name: scn
+
+services:
+  backend:
+    image: ${BACKEND_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ./env/backend.env
+      - ./env/postgres.env
+    networks:
+      - backend
+      - frontend
+    volumes:
+      - uploads:/rails/public/uploads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.scn_backend.rule=Host(`${BACKEND_HOST_HEADER}`)"
+      - "traefik.http.routers.scn_backend.entrypoints=websecure"
+      - "traefik.http.routers.scn_backend.tls.certresolver=letsEncrypt"
+      - "traefik.http.routers.scn_backend.middlewares=scn_backend_compress"
+      - "traefik.http.middlewares.scn_backend_compress.compress=true"
+
+  good_job:
+      image: ${BACKEND_IMAGE}
+      restart: unless-stopped
+      depends_on: 
+        - postgres
+        - redis
+      env_file:
+        - ./env/backend.env
+        - ./env/postgres.env
+      networks:
+        - backend
+      volumes:
+        - uploads:/rails/public/uploads
+      command: ["bundle", "exec", "good_job", "start"]
+
+  runner:
+    image: ${BACKEND_IMAGE}
+    depends_on: 
+      - postgres
+      - redis
+    env_file:
+      - ./env/backend.env
+      - ./env/postgres.env
+    networks:
+      - backend
+    volumes:
+      - uploads:/rails/public/uploads
+      - ./import:/rails/import
+    command: ["bin/true"]
+
+  maintenance:
+    image: nginx:alpine
+    restart: "no"
+    volumes:
+      - ${PWD}/maintenance:/usr/share/nginx/html
+    networks:
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.scn_maintenance.rule=Host(`${FRONTEND_HOST_HEADER}`) || Host(`${BACKEND_HOST_HEADER}`)"
+      - "traefik.http.routers.scn_maintenance.entrypoints=websecure"
+      - "traefik.http.routers.scn_maintenance.tls.certresolver=letsEncrypt"
+      - "traefik.http.middlewares.scn_maintenance_compress.compress=true"
+      - "traefik.http.routers.scn_maintenance.middlewares=scn_maintenance_compress"
+      - "traefik.http.routers.scn_maintenance.priority=100"
+
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - ./env/frontend.env
+    networks:
+      - backend
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.scn_frontend.rule=Host(`${FRONTEND_HOST_HEADER}`)"
+      - "traefik.http.routers.scn_frontend.entrypoints=websecure"
+      - "traefik.http.routers.scn_frontend.tls.certresolver=letsEncrypt"
+      - "traefik.http.routers.scn_frontend.middlewares=scn_frontend_compress"
+      - "traefik.http.middlewares.scn_frontend_compress.compress=true"
+
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./env/postgres.env
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+
+volumes:
+  uploads:
+  postgres_data:
+  redis_data:
+
+networks:
+  frontend:
+    external: true
+    name: traefik_gateway
+  backend:
+    driver: bridge

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# Database prefix - change this for different repositories
+DB_PREFIX="scn_"
+
+usage() {
+  echo "Usage: $0 -a [staging|production] [sql_file]"
+  exit 1
+}
+
+while getopts "a:" opt; do
+  case $opt in
+    a)
+      if [ "$OPTARG" != "staging" ] && [ "$OPTARG" != "production" ]; then
+        usage
+      fi
+      app_environment=$OPTARG
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+# Fetch the [sql_file]
+shift $((OPTIND - 1))
+if [ -z "$1" ]; then
+  usage
+fi
+
+echo "Restoring database for $app_environment"
+
+docker compose \
+  -f compose.yml \
+  exec -iT \
+  postgres \
+  psql \
+  -U postgres \
+  "${DB_PREFIX}${app_environment}" \
+  <"$1"
+

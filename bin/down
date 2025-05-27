@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -e
+
+# Change to the project root directory
+cd "$(dirname "$0")/.."
+
+# Run docker compose down
+docker compose -f compose.yml down "$@"
+
+# Show help if no arguments provided
+if [ "$#" -eq 0 ]; then
+  echo "Usage: bin/down [SERVICES...]"
+  echo ""
+  echo "Description:"
+  echo "  This script stops the containers using docker compose."
+  echo ""
+  echo "Examples:"
+  echo "  bin/down             # Stop all services"
+  echo "  bin/down api redis   # Stop only api and redis"
+fi

@@ -1,0 +1,24 @@
+name: traefik
+
+services:
+  traefik:
+    container_name: "traefik"
+    image: "traefik:v3.1"
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
+    networks:
+      gateway:
+
+networks:
+  gateway:
+    driver: bridge
+
+volumes:
+  letsencrypt:

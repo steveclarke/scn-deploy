@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+dirname=$(dirname -- "${0}")
+script_dir=$(cd -- "${dirname}" >/dev/null 2>&1 && pwd)
+
+source "$script_dir"/lib/helpers.sh
+
+# copy .env.template to .env if it doesn't exist
+if [ ! -f "${script_dir}/../.env" ]; then
+  log "Copying .env.template to .env"
+  log "You should edit this file to set the correct values for your environment"
+  cp "${script_dir}/../.env.template" "${script_dir}/../.env"
+fi
+
+# Iterate over any *.env.template files in the env directory. Then copy them to
+# *.env if they don't exist
+for file in "${script_dir}"/../env/*.env.template; do
+  env_file=$(basename "${file}" .template)
+  if [ ! -f "${script_dir}/../env/${env_file}" ]; then
+    log "Copying ${env_file}.template to ${env_file}"
+    log "You should edit this file to set the correct values for your environment"
+    cp "${file}" "${script_dir}/../env/${env_file}"
+  fi
+done
+
+# Add alias sourcing to ~/.bashrc if not already present
+BASHRC_FILE="$HOME/.bashrc"
+ALIASES_PATH="$(cd "${script_dir}/.." && pwd)/.bash_aliases"
+ALIASES_CODE="
+# Source SCN aliases
+if [ -f $ALIASES_PATH ]; then
+    . $ALIASES_PATH
+fi
+"
+
+if [ -f "$BASHRC_FILE" ]; then
+  if ! grep -q "$ALIASES_PATH" "$BASHRC_FILE"; then
+    log "Adding SCN aliases to ~/.bashrc"
+    echo "$ALIASES_CODE" >> "$BASHRC_FILE"
+    log "Aliases added. They will be available in new terminal sessions."
+  else
+    log "Aliases already configured in ~/.bashrc"
+  fi
+else
+  log "Creating ~/.bashrc with SCN aliases"
+  echo "$ALIASES_CODE" > "$BASHRC_FILE"
+  log "Aliases added. They will be available in new terminal sessions."
+fi

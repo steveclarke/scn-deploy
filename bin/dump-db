@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# Database prefix - change this for different repositories
+DB_PREFIX="scn_"
+
+usage() {
+  echo "Usage: $0 -a [staging|production]"
+  exit 1
+}
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+while getopts "a:" opt; do
+  case $opt in
+    a)
+      if [ "$OPTARG" != "staging" ] && [ "$OPTARG" != "production" ]; then
+        usage
+      fi
+      app_environment=$OPTARG
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+timestamp=$(date +%Y%m%d%H%M%S)
+
+docker compose \
+  -f compose.yml \
+  exec -t \
+  postgres \
+  pg_dump \
+  --no-owner \
+  --clean \
+  -U postgres \
+  "${DB_PREFIX}${app_environment}" \
+  >tmp/"${DB_PREFIX}${app_environment}"_"${timestamp}".sql &&
+  echo "Dumped to" &&
+  echo "tmp/${DB_PREFIX}${app_environment}_${timestamp}.sql"

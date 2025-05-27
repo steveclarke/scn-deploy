@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Script to toggle maintenance mode
+
+set -e
+
+MODE=$1
+
+# Move to the root directory
+cd "$(dirname "$0")/.."
+
+if [ "$MODE" == "on" ]; then
+  echo "Enabling maintenance mode..."
+  docker compose up -d maintenance
+  echo "Maintenance mode enabled"
+elif [ "$MODE" == "off" ]; then
+  echo "Disabling maintenance mode..."
+  docker compose stop maintenance
+  echo "Maintenance mode disabled"
+elif [ "$MODE" == "status" ]; then
+  if docker compose ps maintenance | grep -q "Up"; then
+    echo "Maintenance mode is ENABLED"
+    exit 0
+  else
+    echo "Maintenance mode is DISABLED"
+    exit 1
+  fi
+else
+  echo "Usage: $0 [on|off|status]"
+  echo "  on     - Enable maintenance mode"
+  echo "  off    - Disable maintenance mode"
+  echo "  status - Check if maintenance mode is enabled"
+  exit 1
+fi
+
+

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -e
+
+# Change to the project root directory
+cd "$(dirname "$0")/.."
+
+# Run command in runner container
+docker compose -f compose.yml run --rm runner "${@:-bash}"
+
+# Show help if no arguments provided
+if [ "$#" -eq 0 ]; then
+  echo "Usage: bin/runner [COMMAND]"
+  echo ""
+  echo "Description:"
+  echo "  This script runs commands in the runner container."
+  echo "  It's a shorthand for 'docker compose run --rm runner'."
+  echo ""
+  echo "Examples:"
+  echo "  bin/runner            # Start runner with bash"
+  echo "  bin/runner rails c    # Run rails console"
+  echo "  bin/runner bundle     # Run bundle"
+fi 
