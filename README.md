@@ -7,6 +7,18 @@
   - [Overview](#overview)
   - [The Docker Host Server](#the-docker-host-server)
   - [Authenticate the GitHub Container Registry](#authenticate-the-github-container-registry)
+  - [Initial Setup and Configuration](#initial-setup-and-configuration)
+    - [1. Run the Setup Script](#1-run-the-setup-script)
+    - [2. Configure Environment Variables](#2-configure-environment-variables)
+      - [Main Environment Variables](#main-environment-variables)
+      - [Backend Configuration (`env/backend.env`)](#backend-configuration-envbackendenv)
+      - [Frontend Configuration (`env/frontend.env`)](#frontend-configuration-envfrontendenv)
+      - [Database Configuration (`env/postgres.env`)](#database-configuration-envpostgresenv)
+    - [3. Start Traefik (Reverse Proxy)](#3-start-traefik-reverse-proxy)
+    - [4. Pull Docker Images and Start the Application](#4-pull-docker-images-and-start-the-application)
+    - [5. Verify the Deployment](#5-verify-the-deployment)
+    - [Available Aliases](#available-aliases)
+    - [Available Scripts](#available-scripts)
   - [Maintenance Mode](#maintenance-mode)
     - [How It Works](#how-it-works)
     - [Usage](#usage)
@@ -101,6 +113,103 @@ export CR_PAT=YOUR_TOKEN
 $ echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
 > Login Succeeded
 ```
+
+## Initial Setup and Configuration
+
+After cloning the repository and authenticating with the GitHub Container Registry, follow these steps to set up and start the environment:
+
+### 1. Run the Setup Script
+
+The setup script will create environment files from templates and configure shell aliases:
+
+```bash
+bin/setup
+```
+
+This script will:
+- Copy `.env.template` to `.env` (if it doesn't exist)
+- Copy all `env/*.env.template` files to `env/*.env` files
+- Add SCN aliases to your `~/.bashrc` for convenient commands
+
+### 2. Configure Environment Variables
+
+Edit the environment files created by the setup script:
+
+#### Main Environment Variables
+Edit the main `.env` file to set:
+- `BACKEND_IMAGE` - The backend Docker image (e.g., `ghcr.io/username/scn-backend:latest`)
+- `FRONTEND_IMAGE` - The frontend Docker image (e.g., `ghcr.io/username/scn-frontend:latest`)
+- `BACKEND_HOST_HEADER` - The domain for the API (e.g., `api.yourdomain.com`)
+- `FRONTEND_HOST_HEADER` - The domain for the frontend (e.g., `yourdomain.com`)
+
+#### Backend Configuration (`env/backend.env`)
+- `RAILS_MASTER_KEY` - Rails master key for encrypted credentials
+- `DATABASE_URL` - Update the password in the PostgreSQL connection string
+- `CORE_APP_ENV` - Set to `production` for production deployments
+
+#### Frontend Configuration (`env/frontend.env`)
+- `NUXT_PUBLIC_CDN_URL` - CDN URL for static assets
+- `NUXT_PUBLIC_SCRIPTS_GOOGLE_ANALYTICS_ID` - Google Analytics tracking ID (optional)
+
+#### Database Configuration (`env/postgres.env`)
+- `POSTGRES_PASSWORD` - Set a secure password for the PostgreSQL database
+
+### 3. Start Traefik (Reverse Proxy)
+
+Start the Traefik reverse proxy first, as it handles SSL certificates and routing:
+
+```bash
+bin/lift
+```
+
+Or using the full command:
+```bash
+docker compose -f traefik.compose.yml up -d
+```
+
+### 4. Pull Docker Images and Start the Application
+
+Pull the latest images and start the application stack:
+
+```bash
+docker compose pull
+bin/up
+```
+
+Or using the full commands:
+```bash
+docker compose pull
+docker compose up -d
+```
+
+### 5. Verify the Deployment
+
+Check that all services are running:
+
+```bash
+docker ps
+```
+
+You can also use the convenient alias:
+```bash
+dps
+```
+
+### Available Aliases
+
+After running `bin/setup`, the following aliases will be available in new terminal sessions:
+- `c` - Change to the SCN project directory
+- `ff` - Clear the terminal
+- `dc` - Shortcut for `docker compose`
+- `dps` - Show running containers in a formatted table
+
+### Available Scripts
+
+The following convenience scripts are available in the `bin/` directory:
+- `bin/lift` - Start Traefik reverse proxy
+- `bin/up` - Start the application stack
+- `bin/down` - Stop the application stack
+- `bin/runner` - Run commands in the runner container (useful for Rails console, migrations, etc.)
 
 ## Maintenance Mode
 
