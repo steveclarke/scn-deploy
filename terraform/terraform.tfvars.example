@@ -1,0 +1,33 @@
+# Digital Ocean API Token
+# Get this from: https://cloud.digitalocean.com/account/api/tokens
+do_token = "your-digital-ocean-api-token-here"
+
+# Path to your SSH public key
+# This key will be used to access the server
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
+
+# Droplet configuration
+droplet_name = "scn-docker-host"
+region       = "nyc3"  # Choose a region close to your users
+
+# Droplet size options:
+# - s-1vcpu-1gb   ($6/month)
+# - s-1vcpu-2gb   ($12/month)
+# - s-2vcpu-2gb   ($18/month)
+# - s-2vcpu-4gb   ($24/month) - Recommended
+# - s-4vcpu-8gb   ($48/month)
+droplet_size = "s-2vcpu-4gb"
+
+# Ubuntu 22.04 LTS
+droplet_image = "ubuntu-22-04-x64"
+
+# Enable automated backups ($1/month per 20GB)
+enable_backups = true
+
+# SSH access control
+# For production, restrict this to specific IPs
+ssh_allowed_ips = ["0.0.0.0/0", "::/0"]  # Allow from anywhere (not recommended for production)
+# ssh_allowed_ips = ["YOUR.IP.ADDRESS.HERE/32"]  # Restrict to specific IP
+
+# Environment
+environment = "production" 

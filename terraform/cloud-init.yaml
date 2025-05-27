@@ -1,0 +1,75 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+# Install required packages
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - git
+  - ufw
+
+# Create deploy user with sudo privileges
+users:
+  - name: deploy
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ${deploy_user_public_key}
+
+# Configure firewall
+runcmd:
+  # Enable UFW firewall
+  - ufw --force enable
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw reload
+  
+  # Install Docker
+  - curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+  - sh /tmp/get-docker.sh
+  - usermod -aG docker deploy
+  
+  # Create SSH key for deploy user
+  - sudo -u deploy ssh-keygen -t ed25519 -f /home/deploy/.ssh/id_ed25519 -N ""
+  
+  # Create docker directory
+  - sudo -u deploy mkdir -p /home/deploy/docker
+  
+  # Set proper permissions
+  - chown -R deploy:deploy /home/deploy
+  
+  # Create a note about next steps
+  - |
+    cat > /home/deploy/SETUP_NOTES.txt << 'EOF'
+    Server setup is complete!
+    
+    Next steps:
+    1. Add the deploy user's SSH public key to the scn-deploy GitHub repo as a deploy key:
+       cat /home/deploy/.ssh/id_ed25519.pub
+       
+    2. Clone the repository:
+       cd /home/deploy/docker
+       git clone git@github.com:steveclarke/scn-deploy.git scn
+       
+    3. Set up GitHub Container Registry authentication:
+       export CR_PAT=YOUR_TOKEN
+       echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
+       
+    4. Copy and configure environment files:
+       cd scn
+       cp env/*.env.template env/*.env
+       # Edit the .env files as needed
+       
+    5. Start the stack:
+       docker-compose up -d
+    EOF
+  - chown deploy:deploy /home/deploy/SETUP_NOTES.txt
+
+# Final message
+final_message: "SCN Docker host setup complete! SSH as 'deploy' user to continue." 
