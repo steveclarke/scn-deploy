@@ -11,7 +11,7 @@ cd "$(dirname "$0")/.."
 
 if [ "$MODE" == "on" ]; then
   echo "Enabling maintenance mode..."
-  docker compose up -d maintenance
+  docker compose --profile maintenance up -d maintenance
   echo "Maintenance mode enabled"
 elif [ "$MODE" == "off" ]; then
   echo "Disabling maintenance mode..."
