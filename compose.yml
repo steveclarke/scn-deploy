@@ -60,6 +60,7 @@ services:
       - maintenance
     volumes:
       - ${PWD}/maintenance:/usr/share/nginx/html
+      - ${PWD}/maintenance/nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - frontend
     labels:
